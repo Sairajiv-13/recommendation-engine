@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recommendation Engine Demo</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 760px; padding: 0 1rem; color: #1a1a1a; }
+  h1 { font-size: 1.4rem; }
+  section { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+  label { display: block; font-weight: 600; margin-bottom: 0.4rem; }
+  input { padding: 0.4rem; width: 16rem; max-width: 100%; }
+  button { padding: 0.4rem 0.9rem; margin-left: 0.4rem; cursor: pointer; }
+  ul { padding-left: 1.2rem; }
+  li { margin: 0.25rem 0; }
+  .meta { color: #555; font-size: 0.85rem; }
+  .error { color: #a00; }
+</style>
+</head>
+<body>
+<h1>Recommendation Engine Demo</h1>
+<p class="meta">Three models (popularity, item-item cosine, SVD) trained on MovieLens
+latest-small. The serving model is the one with the best NDCG at 10 on a per-user holdout.</p>
+
+<section>
+  <label for="userId">Recommendations for a user id (1 to 610)</label>
+  <input id="userId" type="number" value="1" min="1">
+  <button onclick="loadRecs()">Get recommendations</button>
+  <div id="recs"></div>
+</section>
+
+<section>
+  <label for="query">Find movies similar to a title</label>
+  <input id="query" type="text" value="Toy Story">
+  <button onclick="loadSimilar()">Search</button>
+  <div id="similar"></div>
+</section>
+
+<script>
+async function fetchJson(url) {
+  const res = await fetch(url);
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.detail || res.statusText);
+  return body;
+}
+function renderList(el, items) {
+  el.innerHTML = "<ul>" + items.map(m =>
+    "<li>" + m.title + " <span class='meta'>" + m.genres.join(", ") +
+    " &middot; score " + m.score + "</span></li>").join("") + "</ul>";
+}
+async function loadRecs() {
+  const el = document.getElementById("recs");
+  const id = document.getElementById("userId").value;
+  el.textContent = "Loading...";
+  try {
+    const data = await fetchJson("/recommend/user/" + id + "?n=10");
+    el.innerHTML = "<p class='meta'>Model: " + data.model + "</p>";
+    renderList(el, data.recommendations);
+  } catch (err) {
+    el.innerHTML = "<p class='error'>" + err.message + "</p>";
+  }
+}
+async function loadSimilar() {
+  const el = document.getElementById("similar");
+  const q = document.getElementById("query").value;
+  el.textContent = "Loading...";
+  try {
+    const found = await fetchJson("/search?title=" + encodeURIComponent(q));
+    if (!found.results.length) { el.innerHTML = "<p class='error'>No title match.</p>"; return; }
+    const first = found.results[0];
+    const data = await fetchJson("/recommend/similar/" + first.movieId + "?n=10");
+    el.innerHTML = "<p class='meta'>Similar to: " + first.title + "</p>";
+    renderList(el, data.similar);
+  } catch (err) {
+    el.innerHTML = "<p class='error'>" + err.message + "</p>";
+  }
+}
+loadRecs();
+</script>
+</body>
+</html>
