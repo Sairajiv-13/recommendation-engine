@@ -1,0 +1,31 @@
+{
+  "winner": "item_item",
+  "models": {
+    "popularity": {
+      "precision_at_10": 0.12050000000000002,
+      "recall_at_10": 0.09826351128225194,
+      "ndcg_at_10": 0.1561148497471131,
+      "coverage": 0.005450431921020156,
+      "users_evaluated": 600
+    },
+    "item_item": {
+      "precision_at_10": 0.164,
+      "recall_at_10": 0.1596070836202367,
+      "ndcg_at_10": 0.22372552752801028,
+      "coverage": 0.04751131221719457,
+      "users_evaluated": 600
+    },
+    "svd": {
+      "precision_at_10": 0.11333333333333333,
+      "recall_at_10": 0.11154657261339604,
+      "ndcg_at_10": 0.16596947395777054,
+      "coverage": 0.06499382969971206,
+      "users_evaluated": 600
+    }
+  },
+  "ratings": 100836,
+  "users": 610,
+  "movies": 9724,
+  "split": "per-user random holdout, 20 percent test, seed 42",
+  "relevance": "held-out rating of 4.0 or higher"
+}
