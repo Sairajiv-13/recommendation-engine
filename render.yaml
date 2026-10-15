@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: recommendation-engine
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      - key: RECS_ARTIFACTS
+        value: /app/artifacts
