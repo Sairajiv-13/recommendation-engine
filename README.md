@@ -7,6 +7,8 @@ and serving share one codebase, and the evaluation numbers in this
 README come straight from `artifacts/results.json`, written by the
 training run.
 
+Live demo: https://recommendation-engine-a8e4.onrender.com (free tier, the first request after idle can take a minute)
+
 ## Problem
 
 Given what a person has rated, rank the movies they are most likely to
