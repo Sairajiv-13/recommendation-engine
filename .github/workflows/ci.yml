@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Lint
+        run: |
+          ruff check src tests data
+          ruff format --check src tests data
+      - name: Test
+        run: pytest --cov=recs --cov-report=term-missing
+
+  container:
+    # Build the image and prove the app actually starts inside it.
+    # The image trains at build time, so this job also catches data
+    # and training breakage that the host test run cannot see.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t recommendation-engine:ci .
+      - name: Start container and check health
+        run: |
+          docker run -d --name api -p 8000:8000 recommendation-engine:ci
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:8000/healthz; then exit 0; fi
+            sleep 2
+          done
+          docker logs api
+          exit 1
